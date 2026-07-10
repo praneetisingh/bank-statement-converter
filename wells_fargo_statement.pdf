@@ -1,0 +1,8 @@
+This is a dummy bank statement file for Wells Fargo.
+Client: Test Corp LLC
+Bank: Wells Fargo
+Account Suffix: 4321
+Transactions:
+2026-06-01 AWS Cloud Services Bill 1420.50 debit
+2026-06-03 Google Workspace Subscription 78.00 debit
+2026-06-05 ACH DEPOSIT - STRIPE PAYMENTS 8450.00 credit

@@ -1,0 +1,81 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  # Using GitLab's built-in container registry
+  BACKEND_IMAGE: $CI_REGISTRY_IMAGE/backend:latest
+  FRONTEND_IMAGE: $CI_REGISTRY_IMAGE/frontend:latest
+
+# ============================================================
+# BUILD STAGE
+# ============================================================
+build-images:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    # Build and push backend image
+    - docker build --pull -t $BACKEND_IMAGE ./backend
+    - docker push $BACKEND_IMAGE
+    
+    # Build and push frontend image
+    - docker build --pull -t $FRONTEND_IMAGE ./frontend
+    - docker push $FRONTEND_IMAGE
+  only:
+    - main # Adjust to your primary branch (e.g. master)
+
+# ============================================================
+# DEPLOY STAGE (SSH to Host Server)
+# ============================================================
+deploy-app:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    # Install ssh-agent and curl
+    - apk add --no-cache openssh-client curl
+    
+    # Setup SSH key to access the deployment server
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts
+  script:
+    # SSH to server and run deployment commands
+    - |
+      ssh $SERVER_USER@$SERVER_IP "
+        echo 'Logging into GitLab Container Registry...'
+        echo '$CI_REGISTRY_PASSWORD' | docker login -u '$CI_REGISTRY_USER' --password-stdin $CI_REGISTRY
+        
+        echo 'Pulling latest images...'
+        docker pull $BACKEND_IMAGE
+        docker pull $FRONTEND_IMAGE
+        
+        # Stop and remove old containers, start new ones
+        echo 'Starting containers...'
+        docker stop statement_converter_frontend statement_converter_backend || true
+        docker rm statement_converter_frontend statement_converter_backend || true
+        
+        # Run backend with sqlite persistence
+        docker run -d --name statement_converter_backend \
+          --restart always \
+          -p 8000:8000 \
+          -v sqlite_data:/app/data \
+          --env-file /opt/statement-converter/.env \
+          $BACKEND_IMAGE
+        
+        # Run frontend linked to backend
+        docker run -d --name statement_converter_frontend \
+          --restart always \
+          -p 80:80 \
+          $FRONTEND_IMAGE
+        
+        echo 'Deployment complete!'
+      "
+  only:
+    - main
+  dependencies: []
