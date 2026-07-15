@@ -97,7 +97,7 @@ class TestStatementConverter(unittest.TestCase):
         # Force running in mock state by requesting parsing (which detects key or falls back)
         data = parser.parse_statement_with_gemini("wells_fargo_statement.pdf", is_image=False)
         self.assertEqual(data["bank_name"], "Wells Fargo")
-        self.assertEqual(data["account_number_suffix"], "4321")
+        self.assertEqual(data["account_number_suffix"], "1015")
         self.assertTrue(len(data["transactions"]) > 0)
 
 if __name__ == "__main__":

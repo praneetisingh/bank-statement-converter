@@ -228,6 +228,12 @@ function App() {
         })
       });
       
+      if (!response.ok) {
+        const errorText = await response.text();
+        alert(`Failed to export Excel: ${errorText}`);
+        return;
+      }
+      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -238,6 +244,7 @@ function App() {
       a.remove();
     } catch (err) {
       console.error(err);
+      alert(`Error exporting Excel: ${err.message}`);
     } finally {
       setExportingExcel(false);
     }

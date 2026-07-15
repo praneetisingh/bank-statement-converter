@@ -101,9 +101,8 @@ async def upload_statement(file: UploadFile = File(...)):
             content={"success": False, "message": f"Failed to parse statement: {str(e)}"}
         )
     finally:
-        # Clean up temp file
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+        # Keep temp file for debugging/OCR diagnostics
+        pass
 
 @app.post("/api/save-config")
 async def save_config(req: MappingConfigRequest):
