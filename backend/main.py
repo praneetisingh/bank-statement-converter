@@ -24,6 +24,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.exceptions import RequestValidationError
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    print("=== Validation Error ===")
+    print(exc.errors())
+    return JSONResponse(
+        status_code=422,
+        content={"success": False, "message": "Validation Error", "detail": str(exc.errors())}
+    )
+
 TEMP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp_uploads")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
