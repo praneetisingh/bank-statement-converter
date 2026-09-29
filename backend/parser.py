@@ -346,7 +346,7 @@ def parse_statement_with_gemini(file_path: str, is_image: bool = False) -> dict:
     if is_demo:
         print(f"[DEMO SAFEGUARD] Match found in filename ({filename}) or text. Loading exact mock records.")
         result = get_mock_statement_data(file_path, text=extracted_text)
-        result["_is_mock"] = False
+        result["_is_mock"] = True
         return result
 
     if USE_LOCAL_LLM:
