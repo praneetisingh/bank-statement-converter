@@ -18,7 +18,7 @@ import {
   FileCode
 } from 'lucide-react';
 
-const API_BASE = 'https://ba447aa1aa7d671a-103-59-75-216.serveousercontent.com';
+const API_BASE = '';
 
 function App() {
   // File Upload States
